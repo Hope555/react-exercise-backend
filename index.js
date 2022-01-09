@@ -82,7 +82,7 @@ app.post('/api/persons', function (request, response) {
         response.status(400).json({ error: 'name must be unique' });
     }
 });
-var PORT = 3001;
+var PORT = process.env.PORT || 3001;
 app.listen(PORT, function () {
     console.log("Server running on port ".concat(PORT));
 });
