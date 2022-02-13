@@ -1,5 +1,8 @@
+require('dotenv').config()
+const Person = require('./models/person')
 const express = require('express')
 const morgan = require('morgan')
+const errorHandler = require('./middlewares/errorHandler')
 const app = express()
 app.use(express.json())
 app.use(express.static('build'))
@@ -47,30 +50,38 @@ app.get('/', (req, res) => {
 })
 
 app.get('/api/info', (req, res) => {
-  const content = `<h3>Phonebook has info for ${persons.length} people</h3>`;
-  const date = `<h3>${new Date()}</h3>`
-  res.send(content + date);
+  Person.find({}).then(result => {
+    const content = `<h3>Phonebook has info for ${result.length} people</h3>`;
+    const date = `<h3>${new Date()}</h3>`
+    res.send(content + date);
+  })
 })
 
 app.get('/api/persons', (req, res) => {
-  res.json(persons)
+  Person.find({}).then(result => {
+    res.json(result)
+  })
 })
 
-app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const person = persons.find(person => person.id === id)
-  
-  if (person) {
-    response.json(person)
-  } else {
-    response.status(404).end()
-  }
+app.get('/api/persons/:id', (request, response, next) => {
+  Person.findById(request.params.id)
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        console.log('id not found')
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  persons = persons.filter(person => person.id !== id)
-  response.status(204).end()
+  Person.findByIdAndRemove(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => console.log(error))
 })
 
 function getRandomId() {
@@ -80,19 +91,35 @@ function getRandomId() {
 app.post('/api/persons', (request, response) => {
   const {name, number} = request.body
   if (name && number && !persons.find(person => person.name == name)) {
-    const person = {
-      id: getRandomId(),
-      name: name,
-      number: number,
-    }
-    persons = persons.concat(person);
-    response.json(person)
+    const person = new Person({
+      name,
+      number
+    })
+    person.save().then(result => {
+      response.json(result)
+    })
   } else {
     response.status(400).json({error: 'name must be unique'})
   }
 })
 
-const PORT = process.env.PORT || 3001
+app.put('/api/persons/:id', (request, response, next) => {
+  const {name, number} = request.body
+  const person = {
+    name,
+    number
+  }
+  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then(updatedPerson => {
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
+})
+
+app.use(errorHandler.invalidId)
+app.use(errorHandler.unknownEndpoint)
+
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
