@@ -88,16 +88,18 @@ function getRandomId() {
   return Math.floor(Math.random() * 1000)
 }
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const {name, number} = request.body
   if (name && number && !persons.find(person => person.name == name)) {
     const person = new Person({
       name,
       number
     })
-    person.save().then(result => {
-      response.json(result)
-    })
+    person.save()
+      .then(result => {
+        response.json(result)
+      })
+      .catch(error => next(error))
   } else {
     response.status(400).json({error: 'name must be unique'})
   }
@@ -109,7 +111,11 @@ app.put('/api/persons/:id', (request, response, next) => {
     name,
     number
   }
-  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+  const opts = {
+    new: true,
+    runValidators: true
+  };
+  Person.findByIdAndUpdate(request.params.id, person, opts)
     .then(updatedPerson => {
       response.json(updatedPerson)
     })
