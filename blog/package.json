@@ -4,18 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=production  node index.js",
+    "start": "cross-env NODE_ENV=production node index.js",
     "dev": "cross-env NODE_ENV=development node index.js",
-    "test": "cross-env NODE_ENV=test jest --verbose --runInBand"
+    "test": "cross-env NODE_ENV=test jest user_api.test.js --verbose --runInBand"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "express": "^4.17.2",
     "express-async-errors": "^3.1.1",
-    "mongoose": "^6.2.1"
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.2.1",
+    "mongoose-unique-validator": "^3.0.0"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
