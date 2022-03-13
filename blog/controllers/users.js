@@ -13,7 +13,7 @@ usersRouter.post('/', async (request, response) => {
   const {username, name, password} = request.body
   if (password.length >= 3) {
     const saltRounds = bcryptjs.genSaltSync(10)
-    const passwordHash = await bcryptjs.hashSync(password, saltRounds)
+    const passwordHash = bcryptjs.hashSync(password, saltRounds)
     const user = new User({
       username,
       name,
